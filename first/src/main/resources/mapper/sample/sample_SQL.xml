@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 매핑을 해서 쓰는게 아니라 id를 가져다가 쓴다. -->
+<mapper namespace="sample">
+	<select id="selectBoardList" parameterType="hashmap" resultType="hashmap">
+		<include refid="common.pagingPre"/>
+		<!-- ROW_NUMBER(): 모든 행의 번호를 순차적으로 지정 / ORDER BY: ROW_NUMBER가 할당되는 컬럼과 순서 -->
+		<![CDATA[SELECT ROW_NUMBER() OVER (ORDER BY IDX DESC) RNUM, IDX, TITLE, HIT_CNT, TO_CHAR(CREA_DTM, 'YYYY.MM.DD') AS CREA_DTM FROM TB_BOARD02 WHERE DEL_GB = 'N']]>
+		<include refid="common.pagingPost"/>
+	</select>
+	
+	<!-- useGeneratedKeys: DB에 입력(insert, update)시 데이터베이스에서 자동적으로 증가되는 키를 받는 JDBC의 getGeneratedKeys() 메서드를 사용하도록 함.
+	keyProperty: getGeneratedKeys() 메서드나 insert구문의 selectKey에 의해 선택된 키를 셋팅하는 속성. -->
+	<insert id="insertBoard" parameterType="hashmap" useGeneratedKeys="true" keyProperty="IDX">
+		 <!-- order="BEFORE"때문에 insert를 할때 먼저 실행됨. 
+		 다음 게시글 번호를 가져온 후, 그 값은 인자로 들어온 map의 IDX파라미터에 다시 저장. IDX값이 담긴 map이 그대로 ServiceImpl 영역까지 전달 -->
+		<selectKey keyProperty="IDX" resultType="string" order="BEFORE">
+			SELECT SEQ_TB_BOARD02_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[INSERT INTO TB_BOARD02(IDX, TITLE, CONTENTS, HIT_CNT, DEL_GB, CREA_DTM, CREA_ID) VALUES(#{IDX}, #{TITLE}, #{CONTENTS}, 0, 'N', SYSDATE, 'Admin')]]>
+	</insert>
+	
+	<insert id="insertFile" parameterType="hashmap">
+		<![CDATA[INSERT INTO TB_FILE02(IDX, BOARD_IDX, ORIGINAL_FILE_NAME, STORED_FILE_NAME, FILE_SIZE, CREA_ID) VALUES(SEQ_TB_FILE02_IDX.NEXTVAL, #{BOARD_IDX}, #{ORIGINAL_FILE_NAME}, #{STORED_FILE_NAME}, #{FILE_SIZE}, 'Admin')]]>
+	</insert>
+	
+	<select id="selectFileList" parameterType="hashmap" resultType="hashmap">
+		<!-- ROUND(FILE_SIZE/1024,1): 크기를 Kb 단위로 보여줌. -->
+		<![CDATA[SELECT IDX, ORIGINAL_FILE_NAME, ROUND(FILE_SIZE/1024,1) AS FILE_SIZE FROM TB_FILE02 WHERE BOARD_IDX = #{IDX} AND DEL_GB = 'N']]>
+	</select>
+	
+	<update id="updateHitCnt" parameterType="hashmap">
+											<!-- NVL(HIT_CNT, 0) + 1: HIT_CNT의 값이 null이면 0으로 하고 1더해라.  -->
+		<![CDATA[UPDATE TB_BOARD02 SET HIT_CNT = NVL(HIT_CNT, 0) + 1 WHERE IDX = #{IDX}]]>
+	</update>
+	
+	<select id="selectBoardDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[SELECT IDX, HIT_CNT, CREA_ID, CREA_DTM, TITLE, CONTENTS FROM TB_BOARD02 WHERE IDX = #{IDX}]]>
+	</select>
+	
+	<update id="updateBoard" parameterType="hashmap">
+		<![CDATA[UPDATE TB_BOARD02 SET TITLE = #{TITLE}, CONTENTS = #{CONTENTS} WHERE IDX = #{IDX}]]>
+	</update>
+	
+	<update id="deleteBoard" parameterType="hashmap">
+		<![CDATA[UPDATE TB_BOARD02 SET DEL_GB = 'Y' WHERE IDX = #{IDX}]]>
+	</update>
+	
+	<update id="deleteFileList" parameterType="hashmap">
+		<![CDATA[UPDATE TB_FILE02 SET DEL_GB = 'Y' WHERE BOARD_IDX = #{IDX}]]>
+	</update>
+	
+	<update id="updateFile" parameterType="hashmap">
+		<![CDATA[UPDATE TB_FILE02 SET DEL_GB = 'N' WHERE IDX = #{FILE_IDX}]]>
+	</update>
+</mapper>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+	
+	<!-- first가 붙은 모든패키지 내용읽어들여서 자동으로 빈등록해서 스프링컨테이너에 올려줌 -->
+	<!-- component-scan: @Controller / @Repository(저장소개념) / @Component(일반처리하는로직) / @Service ->자동으로 객체를 생성해서 등록 -->
+	<!-- use-default-filters="false": @ 자동 등록 안하겠다. include-filter: 지정한 @만 빈 등록 -> 즉, @Controller만 등록할래 -->
+	<!-- context-common.xml에서 나머지 등록하는 설정을 한다. -->
+	<context:component-scan base-package="first" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+	
+	<mvc:annotation-driven>
+		<!-- 자바빈 안씀. 모든 전송된 데이터는 맵에다가 넣고, mybatis단도 맵사용, mybatis에서 꺼내온 데이터도 맵으로 전달.
+			이때 일반 hashmap을 쓰면 원하는 작업x 따라서 직접 맵관련된걸 만들어놓고 활용. 이는 그걸 위한 코드. -->
+		<mvc:argument-resolvers> 
+			<bean class="first.common.resolver.CustomMapArgumentResolver"></bean>		
+		</mvc:argument-resolvers>
+	</mvc:annotation-driven>
+	
+	<!-- 모든 요청에 대해서 loggerInterceptor등록해두고 사용할래. -->
+	<!-- console창에 내가 컨트롤러단에서, 서비스단에서, 디비단에서 등등 뭐하는지 다 찍어줌 (mybatis에 만든 어떤 쿼리문이 동작한건지 나옴.) -->
+	<!-- 완성 후 계속쓸 필요없다. 개발할 때만 쓰자. -->
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<bean id="loggerInterceptor" class="first.common.logger.LoggerInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	<!-- <aop:aspectj-autoproxy/>: @Aspect 어노테이션을 통해서 자동 bean 등록 -->
+	<aop:aspectj-autoproxy/>
+    <bean id="loggerAspect" class="first.common.logger.LoggerAspect" />
+	
+    <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"/>
+    
+    <!-- 밑에 있는 MappingJackson2JsonView를 이용해서 Ajax까지 이용하려고 BeanNameViewResolver등록 -->
+    <bean class="org.springframework.web.servlet.view.BeanNameViewResolver" p:order="0" />
+    <bean id="jsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"/> <!-- jsonView는 데이터를 json 형식으로 변환 -->    
+    
+    <bean class="org.springframework.web.servlet.view.UrlBasedViewResolver" p:order="1" 
+    	p:viewClass="org.springframework.web.servlet.view.JstlView" 
+    	p:prefix="/WEB-INF/jsp/" p:suffix=".jsp">
+   	</bean>
+</beans>
+
+<!-- action-servlet.xml(스프링컨테이너에 전체적으로 적용될 설정) -->
+<!-- DB단에 대한 설정없다. context-datasource.xml에 있음 -->

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:aop="http://www.springframework.org/schema/aop"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+    
+    <!-- action-servlet.xml에서 AOP를 설정한 것과 동일 --> 
+    <!-- <aop:aspectj-autoproxy/>: @Aspect 어노테이션을 통해서 자동 bean 등록 -->
+    <aop:aspectj-autoproxy/>
+    <bean id="loggerAspect" class="first.common.logger.LoggerAspect" />
+</beans>
+
+<!-- 기존의 xml 파일에 작성을 해도 되지만, 앞으로 다른 AOP를 작성할 상황을 대비해서 따로 xml파일을 생성 -->

@@ -1,0 +1,4 @@
+<!-- 공통으로 포함될 바디(body) 파일 작성 -->
+
+<%@ page pageEncoding="utf-8"%>
+<form id="commonForm" name="commonForm"></form>
