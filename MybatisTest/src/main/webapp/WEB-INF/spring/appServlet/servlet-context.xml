@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	
+	<!-- servlet-context.xml = 어노테이션 드리븐, 디폴트 서블릿관련, 뷰 리졸버 -->
+	<!-- DI관련된 빈등록 같은 것들이 싹 사라졌다. -->
+	
+	<!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
+	
+	<!-- Enables the Spring MVC @Controller programming model -->
+	<annotation-driven />
+
+	<!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
+	<resources mapping="/resources/**" location="/resources/" />
+
+	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<beans:property name="prefix" value="/WEB-INF/views/" />
+		<beans:property name="suffix" value=".jsp" />
+	</beans:bean>
+	
+	<!-- com.test.controller패키지에 있는 것들(@Controller @Component @Repository @Service)을 자동 등록하겠다. -->
+	<!-- 관계들은 @Autowired같은 걸 사용해서 맺어줌(DI) -->
+	<context:component-scan base-package="com.test.controller" />
+	
+</beans:beans>
